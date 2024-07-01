@@ -1,0 +1,83 @@
+### Snippets
+
+
+# 1 to 2
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS,
+	}
+
+
+# 2 to 3 
+cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+
+syscall.Sethostname([]byte("container"))
+
+
+# 3 to 4
+
+  cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+	}
+
+fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
+
+# 4 to 5
+	syscall.Chroot("/opt/ubuntu-image/filesystem")
+	os.Chdir("/")
+
+# 5 to 6
+  syscall.Chroot("/opt/ubuntu-image/filesystem")
+	os.Chdir("/")
+	syscall.Mount("proc", "proc", "proc", 0, "")
+
+	cmd.Run()
+
+	syscall.Unmount("proc", 0)  
+
+# 6 to 7
+cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+		Unshareflags: syscall.CLONE_NEWNS,
+	}
+
+# 7 to 8
+func cg() {
+	cgroupPath := "/sys/fs/cgroup"
+
+	// Allow control for pids in the cgroup subtree
+	err := os.WriteFile(filepath.Join(cgroupPath, "cgroup.subtree_control"), []byte("+pids"), 0700)
+	if err != nil {
+		panic(err)
+	}
+
+	cgroupDemoPath := "/sys/fs/cgroup/dockerdemo"
+	err = os.Mkdir(cgroupDemoPath, 0755)
+	if err != nil && !os.IsExist(err) {
+		panic(err)
+	}
+
+	// Make this cgroup "threaded"
+	err = os.WriteFile(filepath.Join(cgroupDemoPath, "cgroup.type"), []byte("threaded"), 0700)
+	if err != nil {
+		panic(err)
+	}
+
+	// Allow maximal 20 pids
+	err = os.WriteFile(filepath.Join(cgroupDemoPath, "pids.max"), []byte("20"), 0700)
+	if err != nil {
+		panic(err)
+	}
+
+	// add current pis to the cgroup
+	pid := strconv.Itoa(os.Getpid())
+	if err := os.WriteFile(filepath.Join(cgroupDemoPath, "cgroup.threads"), []byte(pid), 0700); err != nil {
+		panic(err)
+	}
+
+}
+
+# in child()
+fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
+
+cg()
