@@ -1,20 +1,20 @@
 ### Snippets
 
 
-# 1 to 2
+# 1 to 2   new hostname - invisible
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS,
 	}
 
 
-# 2 to 3 
+# 2 to 3 new hostname - visible
 cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
 
 syscall.Sethostname([]byte("container"))
 
 
-# 3 to 4
+# 3 to 4 new hostname - new pid - no ps
 
   cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
@@ -22,11 +22,11 @@ syscall.Sethostname([]byte("container"))
 
 fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
 
-# 4 to 5
+# 4 to 5 - chroot
 	syscall.Chroot("/opt/ubuntu-image/filesystem")
 	os.Chdir("/")
 
-# 5 to 6
+# 5 to 6 - mount proc
   syscall.Chroot("/opt/ubuntu-image/filesystem")
 	os.Chdir("/")
 	syscall.Mount("proc", "proc", "proc", 0, "")
@@ -35,13 +35,13 @@ fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
 
 	syscall.Unmount("proc", 0)  
 
-# 6 to 7
+# 6 to 7 - isolate mount
 cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
 
-# 7 to 8
+# 7 to 8 - cgoups
 func cg() {
 	cgroupPath := "/sys/fs/cgroup"
 
