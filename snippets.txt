@@ -42,7 +42,7 @@ cmd.SysProcAttr = &syscall.SysProcAttr{
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
 
-# 7 to 8 - cgoups
+# 7 to 8 - cgroups
 func cg() {
 	cgroupPath := "/sys/fs/cgroup"
 
@@ -87,6 +87,6 @@ cg()
 
 https://en.wikipedia.org/wiki/Fork_bomb
 
-:(){ :|:& };:
+:(){ :|:& };:
 
 watch -n 1 'cat /sys/fs/cgroup/dockerdemo/pids.current'
