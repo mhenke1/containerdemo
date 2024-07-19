@@ -81,3 +81,11 @@ func cg() {
 fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
 
 cg()
+
+#### Check
+
+https://en.wikipedia.org/wiki/Fork_bomb
+
+:(){ :|:& };:
+
+watch -n 1 'cat /sys/fs/cgroup/dockerdemo/pids.current'
