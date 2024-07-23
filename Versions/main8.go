@@ -50,7 +50,7 @@ func child() {
 	cmd.Stderr = os.Stderr
 
 	syscall.Sethostname([]byte("container"))
-	syscall.Chroot("/opt/ubuntu-image/filesystem")
+	syscall.Chroot("/opt/container-filesystem")
 	os.Chdir("/")
 	syscall.Mount("proc", "proc", "proc", 0, "")
 
@@ -68,7 +68,7 @@ func cg() {
 		panic(err)
 	}
 
-	cgroupDemoPath := "/sys/fs/cgroup/dockerdemo"
+	cgroupDemoPath := "/sys/fs/cgroup/containerdemo"
 	err = os.Mkdir(cgroupDemoPath, 0755)
 	if err != nil && !os.IsExist(err) {
 		panic(err)

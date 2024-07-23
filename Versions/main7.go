@@ -46,7 +46,7 @@ func child() {
 	cmd.Stderr = os.Stderr
 
 	syscall.Sethostname([]byte("container"))
-	syscall.Chroot("/opt/ubuntu-image/filesystem")
+	syscall.Chroot("/opt/container-filesystem")
 	os.Chdir("/")
 	syscall.Mount("proc", "proc", "proc", 0, "")
 
