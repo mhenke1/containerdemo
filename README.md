@@ -1,6 +1,6 @@
 # Containerdemo
 
-A new version of the "Container in 100 lines of Go demo"
+An updated version of the "Container in 100 lines of Go demo"
 * Based on a blog post from Julian Friedman (Doctor Julz) – 2016 • https://www.infoq.com/articles/build-a-container-golang/
 * Adopted for a conference talk by Liz Rice – 2018
 *https://www.youtube.com/watch?v=8fi7uSYlOdc
