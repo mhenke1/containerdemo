@@ -26,4 +26,4 @@ on your host machine:
 `cp Versions/main1.go main.go`
 
 ## Run the Show
-see `snippets.txt` and the presentantion in `/Documentation`
+see `snippets.txt` and the presentation in `/Documentation`
