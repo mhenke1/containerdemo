@@ -5,4 +5,5 @@ echo "the container id is $ID"
 docker export "$ID" > ubuntu.tar
 docker stop "$ID"
 docker remove "$ID" 
-docker build . -t containerdemo:v1
+## "--load" was needed for podman
+docker build . -t containerdemo:v1 --load
