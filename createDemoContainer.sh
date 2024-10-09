@@ -1,5 +1,5 @@
 #! /bin/bash
-docker run --name "ubuntusource" -h "ubuntusource" -i -d ubuntu
+docker run --name "ubuntusource" -h "ubuntusource" -i -d ubuntu:24.04
 ID=$(docker ps | grep ubuntusource | cut -d " " -f1)
 echo "the container id is $ID"
 docker export "$ID" > ubuntu.tar

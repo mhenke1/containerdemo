@@ -13,7 +13,7 @@ An updated version of the "Container in 100 lines of Go demo"
 `./createDemoContainer.sh`
 
 ## Run the Demo Container
-`docker run --mount type=bind,source=./main.go,target=/root/main.go --name "containerdemo1" -h "demo" --cap-add SYS_ADMIN --privileged -i -d containerdemo:v1`
+`docker run --mount type=bind,source=./main.go,target=/root/main.go --name "containerdemo1" -h "containerhost" --cap-add SYS_ADMIN --privileged -i -d containerdemo:v1`
 
 The go file is mounted in `/root`in the container and can be edited on your host machine in the editor of your choice
 
