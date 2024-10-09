@@ -85,7 +85,7 @@ cg()
 
 #### Check
 
-ps aux --forest
+ps fux
 
 https://en.wikipedia.org/wiki/Fork_bomb
 
