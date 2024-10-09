@@ -85,6 +85,8 @@ cg()
 
 #### Check
 
+ps aux --forest
+
 https://en.wikipedia.org/wiki/Fork_bomb
 
 :(){ :|:& };:

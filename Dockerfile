@@ -9,4 +9,5 @@ RUN  touch HOST-ROOT / && mkdir -p /opt/container-filesystem
 WORKDIR /opt/container-filesystem 
 COPY ubuntu.tar /opt/container-filesystem
 RUN tar xvf ubuntu.tar && touch CONTAINER-ROOT /opt/container-filesystem
+ENV PS1="\h$ "
 WORKDIR /root
