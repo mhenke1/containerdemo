@@ -1,8 +1,10 @@
 ### Snippets
 
-Cloud Foundry Diego containers
+Real Container Implementations: 
+Docker or Cloud Foundry Diego
 
 # 1 to 2   new hostname - invisible
+## CLONE_NEWUTS separates the hostname, but it still has to be set differently
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS,
@@ -10,12 +12,15 @@ Cloud Foundry Diego containers
 
 
 # 2 to 3 new hostname - visible
+## We implement a indirection to have a place to set the hostname
+
 cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
 
 syscall.Sethostname([]byte("container"))
 
 
 # 3 to 4 new hostname - new pid - no ps
+## We separate the process space, but can not look with ps
 
   cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
@@ -24,10 +29,14 @@ syscall.Sethostname([]byte("container"))
 fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
 
 # 4 to 5 - chroot
+## We use chroot to have our own mount point for proc
+
 	syscall.Chroot("/opt/container-filesystem")
 	os.Chdir("/")
 
 # 5 to 6 - mount proc
+## We mount proc
+
   syscall.Chroot("/opt/container-filesystem")
 	os.Chdir("/")
 	syscall.Mount("proc", "proc", "proc", 0, "")
@@ -37,12 +46,16 @@ fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
 	syscall.Unmount("proc", 0)  
 
 # 6 to 7 - isolate mount
+## We hide the proc mount
+
 cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
 
 # 7 to 8 - cgroups
+## We add a cgroup directory to restrict the number of allowed processes
+
 func cg() {
 	cgroupPath := "/sys/fs/cgroup"
 
