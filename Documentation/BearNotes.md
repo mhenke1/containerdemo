@@ -21,7 +21,7 @@
 More Namespace 
 
 ##### Cgroup
-1. Define max pods
+1. Define max pids
 2. Fork Bomb
 
 #### Set Hostname
@@ -38,18 +38,15 @@ More Cgroups
 
 ## Snippets
 
-### Create Filesystem:
-```
-docker save ubuntu > ubuntu.tar
-docker cp ubuntu.tar dockerdemo:/tmp
+### Create Filesystem and Image:
+`./createDemoContainer.sh`
 
-```
-### Container 
+### Container
 #### start container
-`docker run --mount type=bind,source=/Users/mhenke/workspace/dev/dockerdemo/main.go,target=/root/main.go --name "dockerdemo7" -h "cloudbb" --cap-add SYS_ADMIN --privileged -i -d dockerdemo:v4`
+`./run-demo.sh`
 
 #### access Container
-`docker exec -it dockerdemo7 bash`
+`docker exec -it containerdemo1 bash`
 
 ### Fork Bomb
 
@@ -57,7 +54,7 @@ docker cp ubuntu.tar dockerdemo:/tmp
 * Code: `:(){ :|:& };:`
 
 ### Watch
-`watch -n 1 'cat /sys/fs/cgroup/dockerdemo/pids.current'`
+`watch -n 1 'cat /sys/fs/cgroup/containerdemo/pids.current'`
 
 
 ### Cloneflags

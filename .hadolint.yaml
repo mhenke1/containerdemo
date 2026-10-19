@@ -1,0 +1,7 @@
+# hadolint configuration (used by .github/workflows/ci.yml)
+ignored:
+  # DL3008: "Pin versions in apt-get install". The base image is pinned by
+  # digest, so the apt package set is already fixed for a given build date.
+  # Pinning exact Ubuntu package versions would break the build every time a
+  # security update replaces a version in the archive. Accepted for this demo.
+  - DL3008

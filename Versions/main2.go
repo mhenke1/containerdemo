@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package main
 
@@ -12,6 +11,11 @@ import (
 
 // go run main.go run <cmd> <args>
 func main() {
+	if len(os.Args) < 3 {
+		fmt.Println("usage: go run main.go run <cmd> [args...]")
+		os.Exit(1)
+	}
+
 	switch os.Args[1] {
 	case "run":
 		run()

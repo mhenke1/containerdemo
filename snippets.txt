@@ -13,45 +13,62 @@ Docker or Cloud Foundry Diego
 
 # 2 to 3 new hostname - visible
 ## We implement a indirection to have a place to set the hostname
+## must() is introduced here: it reports a failing call and exits, instead of ignoring it
 
-cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+func must(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+}
 
-syscall.Sethostname([]byte("container"))
+# in run()
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+
+	must(cmd.Run())
+
+# in child()
+	must(syscall.Sethostname([]byte("container")))
+	must(cmd.Run())
 
 
 # 3 to 4 new hostname - new pid - no ps
 ## We separate the process space, but can not look with ps
 
-  cmd.SysProcAttr = &syscall.SysProcAttr{
+	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
 	}
 
-fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
+	fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
+
 
 # 4 to 5 - chroot
 ## We use chroot to have our own mount point for proc
 
-	syscall.Chroot("/opt/container-filesystem")
-	os.Chdir("/")
+	must(syscall.Chroot("/opt/container-filesystem"))
+	must(os.Chdir("/"))
+
 
 # 5 to 6 - mount proc
-## We mount proc
+## We mount proc. Unmount must still run when the command fails, so the error is reported after it
 
-  syscall.Chroot("/opt/container-filesystem")
-	os.Chdir("/")
-	syscall.Mount("proc", "proc", "proc", 0, "")
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
 
-	cmd.Run()
+	err := cmd.Run()
 
-	syscall.Unmount("proc", 0)  
+	syscall.Unmount("proc", 0)
+
+	must(err)
+
 
 # 6 to 7 - isolate mount
 ## We hide the proc mount
 
-cmd.SysProcAttr = &syscall.SysProcAttr{
+	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
+
 
 # 7 to 8 - cgroups
 ## We add a cgroup directory to restrict the number of allowed processes
@@ -71,7 +88,7 @@ func cg() {
 		panic(err)
 	}
 
-	// Make this cgroup "threaded"
+	// Make this cgroup "threaded" (required in cgroup v2 when parent cgroup already has processes)
 	err = os.WriteFile(filepath.Join(cgroupDemoPath, "cgroup.type"), []byte("threaded"), 0700)
 	if err != nil {
 		panic(err)
@@ -83,7 +100,7 @@ func cg() {
 		panic(err)
 	}
 
-	// add current pis to the cgroup
+	// add current pid to the cgroup
 	pid := strconv.Itoa(os.Getpid())
 	if err := os.WriteFile(filepath.Join(cgroupDemoPath, "cgroup.threads"), []byte(pid), 0700); err != nil {
 		panic(err)
@@ -91,10 +108,14 @@ func cg() {
 
 }
 
-# in child()
-fmt.Printf("Running %v as %d\n", os.Args[2:], os.Getpid())
+# in run()
+	err := cmd.Run()
+	os.Remove("/sys/fs/cgroup/containerdemo")
+	must(err)
 
-cg()
+# in child()
+	cg()
+
 
 #### Check
 
