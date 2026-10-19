@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package main
 
@@ -14,6 +13,11 @@ import (
 
 // go run main.go run <cmd> <args>
 func main() {
+	if len(os.Args) < 3 {
+		fmt.Println("usage: go run main.go run <cmd> [args...]")
+		os.Exit(1)
+	}
+
 	switch os.Args[1] {
 	case "run":
 		run()
@@ -21,6 +25,13 @@ func main() {
 		child()
 	default:
 		panic("help")
+	}
+}
+
+func must(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
 	}
 }
 
@@ -36,7 +47,9 @@ func run() {
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
 
-	cmd.Run()
+	err := cmd.Run()
+	os.Remove("/sys/fs/cgroup/containerdemo")
+	must(err)
 }
 
 func child() {
@@ -49,14 +62,16 @@ func child() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	syscall.Sethostname([]byte("container"))
-	syscall.Chroot("/opt/container-filesystem")
-	os.Chdir("/")
-	syscall.Mount("proc", "proc", "proc", 0, "")
+	must(syscall.Sethostname([]byte("container")))
+	must(syscall.Chroot("/opt/container-filesystem"))
+	must(os.Chdir("/"))
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
 
-	cmd.Run()
+	err := cmd.Run()
 
 	syscall.Unmount("proc", 0)
+
+	must(err)
 }
 
 func cg() {
@@ -74,7 +89,7 @@ func cg() {
 		panic(err)
 	}
 
-	// Make this cgroup "threaded"
+	// Make this cgroup "threaded" (required in cgroup v2 when parent cgroup already has processes)
 	err = os.WriteFile(filepath.Join(cgroupDemoPath, "cgroup.type"), []byte("threaded"), 0700)
 	if err != nil {
 		panic(err)
@@ -86,7 +101,7 @@ func cg() {
 		panic(err)
 	}
 
-	// add current pis to the cgroup
+	// add current pid to the cgroup
 	pid := strconv.Itoa(os.Getpid())
 	if err := os.WriteFile(filepath.Join(cgroupDemoPath, "cgroup.threads"), []byte(pid), 0700); err != nil {
 		panic(err)

@@ -1,0 +1,7 @@
+.git
+Documentation
+Versions
+*.md
+createDemoContainer.sh
+snippets.txt
+LICENSE

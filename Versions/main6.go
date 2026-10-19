@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package main
 
@@ -12,6 +11,11 @@ import (
 
 // go run main.go run <cmd> <args>
 func main() {
+	if len(os.Args) < 3 {
+		fmt.Println("usage: go run main.go run <cmd> [args...]")
+		os.Exit(1)
+	}
+
 	switch os.Args[1] {
 	case "run":
 		run()
@@ -19,6 +23,13 @@ func main() {
 		child()
 	default:
 		panic("help")
+	}
+}
+
+func must(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
 	}
 }
 
@@ -33,7 +44,7 @@ func run() {
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
 	}
 
-	cmd.Run()
+	must(cmd.Run())
 }
 
 func child() {
@@ -44,12 +55,14 @@ func child() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	syscall.Sethostname([]byte("container"))
-	syscall.Chroot("/opt/container-filesystem")
-	os.Chdir("/")
-	syscall.Mount("proc", "proc", "proc", 0, "")
+	must(syscall.Sethostname([]byte("container")))
+	must(syscall.Chroot("/opt/container-filesystem"))
+	must(os.Chdir("/"))
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
 
-	cmd.Run()
+	err := cmd.Run()
 
 	syscall.Unmount("proc", 0)
+
+	must(err)
 }

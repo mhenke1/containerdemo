@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Keeps the action versions in .github/workflows/ci.yml current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Keeps the image references in the Dockerfile current:
+  #   FROM ubuntu:24.04@sha256:...
+  #   COPY --from=golang:1.27.1@sha256:... /usr/local/go /usr/local/go
+  # Dependabot's docker ecosystem reads FROM lines; COPY --from=<image>
+  # references are, to my knowledge, also supported, but this has not been
+  # verified here. Check the first Dependabot run to see if the golang pin
+  # is picked up.
+  # Manual step: when the golang tag is bumped, also update the `go`
+  # directive in go.mod to the same version (Dependabot does not do this,
+  # and no gomod entry is configured because go.mod has no dependencies).
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"

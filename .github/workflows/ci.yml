@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7 # latest major at time of writing (v7.0.1)
+      - uses: actions/setup-go@v7 # latest major at time of writing (v7.0.0)
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: test -z "$(gofmt -l main.go Versions)"
+      # main.go and Versions/main*.go are all "package main", so each file
+      # has to be vetted and built on its own (not with ./...).
+      - name: go vet and go build (each file individually)
+        run: |
+          set -euo pipefail
+          for f in main.go Versions/main*.go; do
+            echo "==> $f"
+            GOOS=linux go vet "$f"
+            GOOS=linux go build -o /dev/null "$f"
+          done
+
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7 # latest major at time of writing (v7.0.1)
+      - name: shellcheck (preinstalled on ubuntu runners)
+        run: shellcheck createDemoContainer.sh run-demo.sh
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7 # latest major at time of writing (v7.0.1)
+      - name: hadolint
+        # Image tag is pinned; rule exceptions live in .hadolint.yaml.
+        run: |
+          docker run --rm -i \
+            -v "$PWD/.hadolint.yaml:/.hadolint.yaml:ro" \
+            hadolint/hadolint:v2.15.1 \
+            hadolint --config /.hadolint.yaml - < Dockerfile
+      # Creates ubuntu.tar (docker create + export) and builds the image.
+      # The container is NOT run: the demo needs --privileged, namespaces and
+      # cgroup v2 writes.
+      - name: Build image (ubuntu.tar + containerdemo:v1)
+        run: ./createDemoContainer.sh
+      - name: Check image exists
+        run: docker image inspect containerdemo:v1 > /dev/null
